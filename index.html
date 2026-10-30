@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>立方体の「デッサン割り」練習・アニメーター動画マン体験</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ea;--fg:#222;--card:#fff;--mut:#666;--ac:#2b6cb0;--bd:#d8d3c7}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444}}
+:root[data-theme="dark"]{--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Hiragino Sans","Noto Sans JP",sans-serif}
+.wrap{max-width:460px;margin:0 auto;padding:12px}
+h1{font-size:16px;margin:4px 0 8px;text-align:center;line-height:1.4}
+.btns{display:flex;gap:8px;margin:8px 0}
+button{flex:1;padding:10px 4px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;font-size:14px}
+button.on{background:#f59e0b;color:#222;border-color:#f59e0b;font-weight:700}
+button.ly.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+button.main{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+canvas{width:100%;aspect-ratio:4/5;background:#fff;border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;display:block;border:1px solid var(--bd)}
+.msg{font-size:13px;color:var(--mut);margin:6px 2px;line-height:1.5}
+.cw{position:relative}
+.res{position:absolute;left:8px;right:8px;bottom:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;display:none;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.res b{font-size:30px}
+</style></head><body><div class="wrap">
+<h1>立方体の「デッサン割り」練習・アニメーター動画マン体験</h1>
+<div class="msg" id="hint"></div>
+<div class="cw"><canvas id="c"></canvas>
+<div class="res" id="res"></div></div>
+<div class="btns"><button class="ly on" id="l0">①下書き（薄い灰色）</button><button class="ly" id="l1">②清書（黒・採点対象）</button></div>
+<div class="btns"><button id="hb">ヒント</button><button id="undo">1本戻す</button><button id="clr">この段階を消す</button></div>
+<div class="btns"><button id="go" class="main">採点する</button><button id="nx">次の出題</button></div>
+</div>
+<script>
+const W=400,H=500,S=62,D=700;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
+const dpr=Math.min(window.devicePixelRatio||1,3);cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+const R=(a,b)=>a+Math.random()*(b-a),sg=()=>Math.random()<.5?-1:1;
+let q=null,strokes=[],drafts=[],layer=0,dl=0,drawing=false,hint=false,result=false,n=0;
+
+function rot(p,y,x,z){let[a,b,c]=p,t;t=a*Math.cos(y)+c*Math.sin(y);c=-a*Math.sin(y)+c*Math.cos(y);a=t;t=b*Math.cos(x)-c*Math.sin(x);c=b*Math.sin(x)+c*Math.cos(x);b=t;t=a*Math.cos(z)-b*Math.sin(z);b=a*Math.sin(z)+b*Math.cos(z);a=t;return[a,b,c]}
+function build(p){const V=[],P=[];
+ for(let i=0;i<8;i++){const r=rot([i&1?S:-S,i&2?S:-S,i&4?S:-S],p.y,p.x,p.z),w=[r[0]+p.tx,r[1]+p.ty,r[2]+D];V.push(w);P.push([200+D*w[0]/w[2],250+D*w[1]/w[2]])}
+ const fr=[];for(let a=0;a<3;a++)for(let s=0;s<2;s++){const e=[0,0,0];e[a]=s?1:-1;const nn=rot(e,p.y,p.x,p.z),c=rot(e.map(v=>v*S),p.y,p.x,p.z),w=[c[0]+p.tx,c[1]+p.ty,c[2]+D];fr[a*2+s]=nn[0]*w[0]+nn[1]*w[1]+nn[2]*w[2]<0}
+ const E=[];for(let u=0;u<8;u++)for(let a=0;a<3;a++){if(u&(1<<a))continue;const v=u|(1<<a),o=[0,1,2].filter(k=>k!==a);E.push({a:P[u],b:P[v],vis:fr[o[0]*2+((u>>o[0])&1)]||fr[o[1]*2+((u>>o[1])&1)]})}
+ return{P,E,vv:V.map((_,i)=>[0,1,2].some(k=>fr[k*2+((i>>k)&1)]))}}
+const ok=o=>o.P.every(p=>p[0]>30&&p[0]<370&&p[1]>45&&p[1]<455);
+
+function gen(){let r;for(let t=0;t<300;t++){
+ const y0=R(-1,1),dy=R(.5,1.1)*sg(),x0=R(.25,.6)*sg(),dx=R(-.25,.25),z0=R(-.2,.2),dz=R(-.15,.15),tx=R(20,45)*sg(),ty=R(-15,15);
+ const A=build({y:y0,x:x0,z:z0,tx:-tx,ty:-ty}),B=build({y:y0+dy,x:x0+dx,z:z0+dz,tx,ty}),M=build({y:y0+dy/2,x:x0+dx/2,z:z0+dz/2,tx:0,ty:0});
+ r={A,B,M};if(ok(A)&&ok(B)&&ok(M))break}
+ let c=[0,1,2,3,4,5,6,7].filter(i=>r.A.vv[i]&&r.B.vv[i]);if(c.length<2)c=[0,1,2,3,4,5,6,7].filter(i=>r.A.vv[i]);
+ c.sort(()=>Math.random()-.5);r.k=[c[0],c[1]];return r}
+
+function seg(a,b,col,w,dash){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.lineCap='round';ctx.stroke();ctx.setLineDash([])}
+function cube(o,col,w,showHidden,hcol){o.E.forEach(e=>{if(e.vis)seg(e.a,e.b,col,w);else if(showHidden)seg(e.a,e.b,hcol||col,1.5,[5,5])})}
+function mark(o,i,kind,col){const c=o.P.reduce((s,p)=>[s[0]+p[0]/8,s[1]+p[1]/8],[0,0]),p=o.P[i];let dx=p[0]-c[0],dy=p[1]-c[1];const l=Math.hypot(dx,dy)||1,x=p[0]+dx/l*15,y=p[1]+dy/l*15;
+ ctx.beginPath();if(kind===0){for(let j=0;j<10;j++){const a=-Math.PI/2+j*Math.PI/5,r=j%2?4:9;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}}else{for(let j=0;j<3;j++){const a=-Math.PI/2+j*2*Math.PI/3;ctx.lineTo(x+Math.cos(a)*9,y+Math.sin(a)*9)}}
+ ctx.closePath();ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke()}
+function draw(){ctx.clearRect(0,0,W,H);ctx.strokeStyle='#eee';ctx.lineWidth=1;for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ const{A,B,M,k}=q;
+ if(hint){M.E.forEach(e=>{if(!e.vis)seg(e.a,e.b,'#9ca3af',1.5,[4,5])});M.P.forEach((p,i)=>{ctx.beginPath();ctx.arc(p[0],p[1],5,0,7);ctx.fillStyle=M.vv[i]?'#16a34a':'#fff';ctx.fill();ctx.strokeStyle='#16a34a';ctx.lineWidth=2;ctx.stroke()})}
+ cube(A,'#e5383b',2.5,hint,'#f5a3a6');cube(B,'#38bdf8',2.5,hint,'#a5dcf6');
+ if(result){cube(M,'#16a34a',2.5,true,'#86c99a');mark(M,k[0],0,'#16a34a');mark(M,k[1],1,'#16a34a')}
+ [[drafts,'#b8b8b8',2],[strokes,'#111',3]].forEach(([L,col,w])=>L.forEach(s=>{ctx.beginPath();s.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash([]);ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke()}));
+ mark(A,k[0],0,'#e5383b');mark(A,k[1],1,'#e5383b');mark(B,k[0],0,'#0ea5e9');mark(B,k[1],1,'#0ea5e9')}
+
+const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]};
+const cur=l=>l?strokes:drafts;
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(result)return;if(drawing)endStroke();try{cv.setPointerCapture(e.pointerId)}catch(_){}dl=layer;cur(dl).push([pt(e)]);drawing=true;draw()});
+window.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const L=cur(dl);L[L.length-1].push(pt(e));draw()});
+function endStroke(){if(!drawing)return;drawing=false;const L=cur(dl);if(L.length&&L[L.length-1].length<3)L.pop();draw()}
+['pointerup','pointercancel'].forEach(t=>window.addEventListener(t,endStroke));
+['touchstart','touchmove'].forEach(t=>cv.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+function samp(pts,step){const o=[];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]),m=Math.max(1,Math.ceil(l/step));for(let j=0;j<=m;j++)o.push([a[0]+(b[0]-a[0])*j/m,a[1]+(b[1]-a[1])*j/m])}return o}
+const near=(p,L)=>{let m=1e9;for(const r of L){const d=(p[0]-r[0])**2+(p[1]-r[1])**2;if(d<m)m=d}return Math.sqrt(m)};
+const cred=d=>Math.exp(-Math.pow(d/14,2));
+function score(){const res=$('res');res.style.display='block';
+ if(!strokes.length){res.textContent='②清書（黒）の線がありません。清書の線を引いてから採点しよう。';return}
+ const ans=[];q.M.E.forEach(e=>{if(e.vis)ans.push(...samp([e.a,e.b],3))});
+ const us=[];strokes.forEach(s=>us.push(...samp(s,3)));
+ const rec=ans.reduce((s,p)=>s+cred(near(p,us)),0)/ans.length,pre=us.reduce((s,p)=>s+cred(near(p,ans)),0)/us.length;
+ const s=Math.round(100*2*rec*pre/(rec+pre+1e-9));
+ const c=s>=90?'原画マン拍手！ほぼ完璧':s>=75?'このまま動画チェックを通りそう':s>=55?'あと一歩。直しが入るかも':'リテイク。ヒントを見てもう一度ねらってみよう';
+ result=true;draw();n++;
+ res.innerHTML='<b>'+s+'</b> 点　'+c+'<div class="msg">緑が正解の立方体です（'+n+'問目'+(hint?'・ヒント使用':'')+'）。「次の出題」で続けられます。</div>'}
+
+function start(){window.scrollTo(0,0);q=gen();strokes=[];drafts=[];setLayer(0);result=false;drawing=false;hint=false;$('hb').classList.remove('on');$('hb').textContent='ヒント';$('res').style.display='none';
+ $('hint').textContent='赤と水色の立方体の「真ん中のポーズ」を、見える線だけで何本でも描こう。まず①下書き（薄い灰色）、次に②清書（黒）。採点は清書の線だけで行います。☆と△は同じ角です（赤→水色へ移動）。';draw()}
+$('hb').onclick=()=>{hint=!hint;$('hb').classList.toggle('on',hint);$('hb').textContent=hint?'ヒントを消す':'ヒント';draw()};
+$('undo').onclick=()=>{if(!result){cur(layer).pop();draw()}};
+$('clr').onclick=()=>{cur(layer).length=0;result=false;$('res').style.display='none';draw()};
+$('go').onclick=()=>{if(!result)score()};$('nx').onclick=start;
+function setLayer(l){layer=l;$('l0').classList.toggle('on',!l);$('l1').classList.toggle('on',!!l)}
+$('l0').onclick=()=>setLayer(0);$('l1').onclick=()=>setLayer(1);
+start();
+</script></body></html>
