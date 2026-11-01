@@ -23,6 +23,10 @@ button.ly.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:
 button.cs{min-height:32px}
 button.cs.on{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
 button.main{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+#gv{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.gbox{background:var(--card);border-radius:12px;padding:12px;max-width:440px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.gbox img{width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:8px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
+button.big{min-height:52px;font-size:18px;letter-spacing:.05em;border-radius:12px}
 .msg{font-size:12px;color:var(--mut);margin:0 2px;line-height:1.45}
 .cw{flex:1 1 0;min-height:0;display:flex;align-items:center;justify-content:center}
 .cv{position:relative}
@@ -36,10 +40,12 @@ canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:no
 <div class="btns"><button class="cs on" id="k0" data-i="c0"></button><button class="cs" id="k1" data-i="c1"></button><button class="cs" id="k2" data-i="c2"></button></div>
 <div class="msg" id="hint"></div>
 <div class="cw" id="cw"><div class="cv" id="cv"><canvas id="c"></canvas><div class="res" id="res"></div></div></div>
-<div class="btns"><button class="ly on" id="l0" data-i="l0"></button><button class="ly" id="l1" data-i="l1"></button></div>
+<div class="btns" id="lyr"><button class="ly on" id="l0" data-i="l0"></button><button class="ly" id="l1" data-i="l1"></button></div>
+<div class="btns" id="plr" hidden><button id="pl" class="main big"></button></div>
 <div class="btns"><button id="hb"></button><button id="undo" data-i="undo"></button><button id="clr" data-i="clr"></button></div>
-<div class="btns"><button id="go" class="main" data-i="go"></button><button id="pl" class="main" hidden></button><button id="nx" data-i="nx"></button></div>
+<div class="btns"><button id="go" class="main" data-i="go"></button><button id="gif" data-i="gif" hidden></button><button id="nx" data-i="nx"></button></div>
 </div>
+<div id="gv" hidden><div class="gbox"><img id="gimg" alt="GIF"><div class="msg" data-i="gmsg"></div><div class="btns"><button id="gsave" class="main" data-i="gsave"></button><button id="gclose" data-i="gclose"></button></div></div></div>
 <script>
 const W=400,H=440,CY=H/2,S=62,D=700;
 /* 上級にもツメ指示を付ける場合 true／大きさの変化だけにする場合 false */
@@ -52,7 +58,7 @@ ja:{
  title:`立方体の「デッサン割り」ゲーム・アニメーター動画マン体験`,langBtn:`English`,
  c0:`初級`,c1:`中級`,c2:`上級`,
  l0:`①下書き（薄い灰色）`,l1:`②清書（黒・採点対象）`,
- hb:`ヒント`,hbOff:`ヒントを消す`,undo:`1本戻す`,clr:`この段階を消す`,go:`採点する`,nx:`次の出題`,play:`▶ 再生`,stop:`■ 停止`,
+ hb:`ヒント`,hbOff:`ヒントを消す`,undo:`1本戻す`,clr:`この段階を消す`,go:`採点する`,nx:`次の出題`,play:`▶ 再生`,stop:`■ 停止`,gif:`GIF保存`,gifBusy:`書き出し中…`,gtitle:`立方体「デッサン割り」ゲーム`,gsave:`保存／共有`,gclose:`閉じる`,gmsg:`「保存／共有」を押すか、保存が始まらないときは画像を長押し（PCは右クリック）して保存してください。`,
  h0:`赤と水色の立方体の「真ん中のポーズ」を、見える線だけで何本でも描こう。まず①下書き（薄い灰色）、次に②清書（黒）。採点は清書の線だけで行います。☆と△は同じ角です（赤→水色へ移動）。`,
  h1:`「ツメ」は、中割りを片方の原画に寄せて入れる指示です。上のツメ指示どおり、赤寄り／水色寄りのポーズを見える線だけで描こう。まず①下書き、次に②清書（黒・採点対象）。☆と△は同じ角です。`,
  h2:`赤と水色で立方体の大きさが違います。大きさの変化も考えて、ツメ指示の位置のポーズを描こう。まず①下書き、次に②清書（黒・採点対象）。☆と△は同じ角です。`,
@@ -62,13 +68,13 @@ ja:{
  rv:`振り返り`,pt:`点　`,
  cm0:`原画マン拍手！ほぼ完璧`,cm1:`このまま動画チェックを通りそう`,cm2:`あと一歩。直しが入るかも`,cm3:`リテイク。ヒントを見てもう一度ねらってみよう`,
  qn:`{n}問目`,hu:`・ヒント使用`,
- note:`緑が正解の立方体です（{q}）。「▶ 再生」で動きを確認、「次の出題」で続けます。`
+ note:`緑が正解の立方体です（{q}）。「▶ 再生」で動きを確認、「GIF保存」で書き出し、「次の出題」で続けます。`
 },
 en:{
  title:`Cube "Dessin-wari" Game – Try Being an Animation Inbetweener`,langBtn:`日本語`,
  c0:`Beginner`,c1:`Intermediate`,c2:`Advanced`,
  l0:`① Rough (light gray)`,l1:`② Clean-up (black, scored)`,
- hb:`Hint`,hbOff:`Hide hint`,undo:`Undo stroke`,clr:`Clear this layer`,go:`Score`,nx:`Next`,play:`▶ Play`,stop:`■ Stop`,
+ hb:`Hint`,hbOff:`Hide hint`,undo:`Undo stroke`,clr:`Clear this layer`,go:`Score`,nx:`Next`,play:`▶ Play`,stop:`■ Stop`,gif:`Save GIF`,gifBusy:`Exporting…`,gtitle:`Cube "Dessin-wari" Game`,gsave:`Save / Share`,gclose:`Close`,gmsg:`Press "Save / Share". If nothing downloads, press and hold the image (or right-click on a computer) to save it.`,
  h0:`Draw the pose halfway between the red and blue cubes, using visible lines only (as many strokes as you like). Start with ① rough (light gray), then ② clean-up (black). Only clean-up lines are scored. ☆ and △ mark the same corner (moving from red to blue).`,
  h1:`"Tsume" tells you to place the in-between closer to one of the two key drawings. Follow the Tsume instruction above and draw the pose closer to red or blue, visible lines only. Rough in ① first, then clean up in ② (scored). ☆ and △ mark the same corner.`,
  h2:`The red and blue cubes differ in size. Take the size change into account and draw the pose at the position the Tsume instruction shows. Rough in ①, clean up in ② (scored). ☆ and △ mark the same corner.`,
@@ -78,13 +84,13 @@ en:{
  rv:`Review`,pt:`pts `,
  cm0:`Key animator applause! Nearly perfect`,cm1:`Looks ready to pass the inbetween check`,cm2:`Almost there. You may get corrections`,cm3:`Retake. Peek at the hint and try again`,
  qn:`Q{n}`,hu:`, hint used`,
- note:`Green is the correct cube ({q}). Press "▶ Play" to check the motion, or "Next" to continue.`
+ note:`Green is the correct cube ({q}). Press "▶ Play" to check the motion, "Save GIF" to export it, or "Next" to continue.`
 }};
 let lang='ja';try{const s=localStorage.getItem('dw-lang');if(s==='en'||s==='ja')lang=s}catch(_){}
 const T=k=>I[lang][k];
 
 /* ===== 基本 ===== */
-const cv=document.getElementById('c'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
+const cv=document.getElementById('c'),$=id=>document.getElementById(id);let ctx=cv.getContext('2d');
 const dpr=Math.min(window.devicePixelRatio||1,3);cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
 const R=(a,b)=>a+Math.random()*(b-a),sg=()=>Math.random()<.5?-1:1;
 let q=null,strokes=[],drafts=[],layer=0,dl=0,drawing=false,hint=false,result=false,n=0,course=0,rs=null;
@@ -132,11 +138,59 @@ function draw(){if(playing){drawPlay();return}
  mark(A,k[0],0,'#e5383b');mark(A,k[1],1,'#e5383b');mark(B,k[0],0,'#0ea5e9');mark(B,k[1],1,'#0ea5e9')}
 
 /* ===== 振り返り再生：赤→描いた→水色→描いた→赤…（24fps・3コマ打ち・白線） ===== */
-function drawPlay(){ctx.setLineDash([]);ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
- if(pf===0)cube(q.A,'#fff',2.5,false);else if(pf===2)cube(q.B,'#fff',2.5,false);else userLines(strokes,'#fff',3)}
+function drawPlay(f=pf){ctx.setLineDash([]);ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+ if(f===0)cube(q.A,'#fff',2.5,false);else if(f===2)cube(q.B,'#fff',2.5,false);else userLines(strokes,'#fff',3)}
 function loop(now){if(!playing)return;const f=Math.floor(Math.max(0,now-t0)/(3000/24))%4;if(f!==pf){pf=f;drawPlay()}raf=requestAnimationFrame(loop)}
 function startPlay(){if(!result||playing)return;playing=true;pf=0;t0=performance.now();$('res').style.visibility='hidden';$('pl').textContent=T('stop');drawPlay();raf=requestAnimationFrame(loop)}
 function stopPlay(){if(!playing)return;playing=false;cancelAnimationFrame(raf);$('res').style.visibility='';$('pl').textContent=T('play');draw()}
+
+/* ===== GIF書き出し（外部ライブラリなし・24fpsの3コマ打ち＝0.125秒） ===== */
+let gifBusy=false,gifBlob=null,gifUrl='';
+function saveGif(){if(!gifBlob)return;
+ try{const f=new File([gifBlob],'dessin-wari.gif',{type:'image/gif'});
+  if(matchMedia('(pointer:coarse)').matches&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(()=>{});return}}catch(_){}
+ const a=document.createElement('a');a.href=gifUrl;a.download='dessin-wari.gif';document.body.appendChild(a);a.click();a.remove()}
+function closeGif(){$('gv').hidden=true;$('gimg').removeAttribute('src')}
+function lzw(idx,mc){const clear=1<<mc,eoi=clear+1,out=[];let cur=0,cb=0,bits=mc+1,next=eoi+1,dict=new Map();
+ const emit=c=>{cur|=c<<cb;cb+=bits;while(cb>=8){out.push(cur&255);cur>>=8;cb-=8}};
+ emit(clear);let p=idx[0];
+ for(let i=1;i<idx.length;i++){const k=idx[i],key=p*256+k,v=dict.get(key);
+  if(v!==undefined){p=v;continue}
+  emit(p);
+  if(next<4096){const c=next++;dict.set(key,c);if(c===(1<<bits))bits++}
+  else{emit(clear);dict=new Map();bits=mc+1;next=eoi+1}
+  p=k}
+ emit(p);emit(eoi);if(cb>0)out.push(cur&255);return out}
+const FOOT=56;let gifStamp='';
+function stampNow(){const d=new Date(),p=v=>String(v).padStart(2,'0'),hm=p(d.getHours())+':'+p(d.getMinutes());
+ return lang==='ja'?d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+hm:d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+hm}
+function gifBox(){let a=1e9,b=1e9,c=-1e9,d=-1e9;const add=p=>{a=Math.min(a,p[0]);c=Math.max(c,p[0]);b=Math.min(b,p[1]);d=Math.max(d,p[1])};
+ [q.A,q.B].forEach(o=>o.E.forEach(e=>{if(e.vis){add(e.a);add(e.b)}}));strokes.forEach(s=>s.forEach(add));
+ const m=24,bw=Math.min(W,Math.max(Math.ceil(c-a+2*m),300)),bh=Math.min(H,Math.ceil(d-b+2*m));
+ return{x:Math.round(Math.max(0,Math.min(W-bw,(a+c)/2-bw/2))),y:Math.round(Math.max(0,Math.min(H-bh,(b+d)/2-bh/2))),w:bw,h:bh}}
+function drawFoot(bw,bh){ctx.setLineDash([]);ctx.fillStyle='#111';ctx.fillRect(0,bh,bw,FOOT);
+ ctx.strokeStyle='#555';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(16,bh+.5);ctx.lineTo(bw-16,bh+.5);ctx.stroke();
+ ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 15px '+FONT;ctx.fillText(T('gtitle'),bw/2,bh+17);
+ ctx.textAlign='left';ctx.font='bold 18px '+FONT;ctx.fillText(rs.s+(lang==='ja'?'点':' pts'),16,bh+40);
+ ctx.textAlign='right';ctx.font='13px '+FONT;ctx.fillStyle='#ccc';ctx.fillText(gifStamp,bw-16,bh+40)}
+function frameIdx(f,sc,bx){const oc=document.createElement('canvas');oc.width=bx.w*sc;oc.height=(bx.h+FOOT)*sc;const sv=ctx;let d;
+ try{ctx=oc.getContext('2d');ctx.save();ctx.scale(sc,sc);ctx.translate(-bx.x,-bx.y);drawPlay(f);ctx.restore();ctx.scale(sc,sc);drawFoot(bx.w,bx.h);d=ctx.getImageData(0,0,oc.width,oc.height).data}finally{ctx=sv}
+ const o=new Uint8Array(oc.width*oc.height);for(let i=0;i<o.length;i++){const v=Math.round((d[i*4]-17)/238*31);o[i]=v<0?0:v>31?31:v}return o}
+function exportGif(){if(!result||gifBusy)return;gifBusy=true;$('gif').textContent=T('gifBusy');
+ setTimeout(()=>{try{
+  gifStamp=stampNow();
+  const bx=gifBox(),sc=2,w=bx.w*sc,h=(bx.h+FOOT)*sc,fr=[0,1,2].map(f=>lzw(frameIdx(f,sc,bx),5)),seq=[0,1,2,1],dl=[12,13,12,13],b=[];
+  const u16=v=>b.push(v&255,(v>>8)&255),str=s=>{for(const c of s)b.push(c.charCodeAt(0))};
+  str('GIF89a');u16(w);u16(h);b.push(0xF4,0,0);
+  for(let i=0;i<32;i++){const g=Math.round(17+238*i/31);b.push(g,g,g)}
+  b.push(0x21,0xFF,0x0B);str('NETSCAPE2.0');b.push(3,1,0,0,0);
+  seq.forEach((s,j)=>{b.push(0x21,0xF9,4,0x04);u16(dl[j]);b.push(0,0,0x2C);u16(0);u16(0);u16(w);u16(h);b.push(0,5);
+   const d=fr[s];for(let i=0;i<d.length;i+=255){const c=d.slice(i,i+255);b.push(c.length);for(const x of c)b.push(x)}b.push(0)});
+  b.push(0x3B);
+  gifBlob=new Blob([Uint8Array.from(b)],{type:'image/gif'});if(gifUrl)URL.revokeObjectURL(gifUrl);gifUrl=URL.createObjectURL(gifBlob);
+  $('gimg').src=gifUrl;$('gv').hidden=false;
+ }catch(err){console.error(err)}
+ gifBusy=false;$('gif').textContent=T('gif')},30)}
 
 /* ===== 描画スペースの入力（ペン・指・マウス共通） ===== */
 const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]};
@@ -152,9 +206,10 @@ function endStroke(){if(!drawing)return;drawing=false;pid=null;ptype='';const L=
 ['pointerup','pointercancel'].forEach(t=>window.addEventListener(t,e=>{if(drawing&&e.pointerId===pid)endStroke()}));
 
 /* ===== 描画スペース以外は何も反応させない（スクロール・拡大・選択・長押しメニューなど） ===== */
-document.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
-document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
-['gesturestart','gesturechange','gestureend','contextmenu','dragstart','selectstart'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+const onGif=e=>e.target.closest&&e.target.closest('#gimg');
+document.addEventListener('touchstart',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
+['gesturestart','gesturechange','gestureend','contextmenu','dragstart','selectstart'].forEach(t=>document.addEventListener(t,e=>{if(!onGif(e))e.preventDefault()}));
 
 /* ===== ボタン：指でもペン先でもマウスでも反応（離した位置がボタン付近なら実行） ===== */
 function bind(el,fn){let id=null;
@@ -183,7 +238,7 @@ function renderRes(){const r=$('res');if(!rs){r.style.display='none';return}r.st
  r.innerHTML='<div><span class="tag">'+T('rv')+'</span><b>'+rs.s+'</b> '+T('pt')+c+'</div><div class="msg">'+T('note').replace('{q}',qs)+'</div>'}
 
 /* ===== 画面の状態 ===== */
-function syncBtns(){$('go').hidden=result;$('pl').hidden=!result;$('pl').textContent=T(playing?'stop':'play')}
+function syncBtns(){$('go').hidden=result;$('gif').hidden=!result;$('lyr').hidden=result;$('plr').hidden=!result;$('pl').textContent=T(playing?'stop':'play')}
 function hintMsg(){$('hint').textContent=T(['h0','h1',ADV_TSUME?'h2':'h2n'][course])}
 function hbLabel(){$('hb').textContent=T(hint?'hbOff':'hb')}
 function apply(){document.documentElement.lang=lang;document.title=T('title');
@@ -203,6 +258,7 @@ bind($('undo'),()=>{if(!result&&!drawing){cur(layer).pop();draw()}});
 bind($('clr'),()=>{stopPlay();cur(layer).length=0;result=false;rs=null;syncBtns();$('res').style.display='none';draw()});
 bind($('go'),()=>{if(!result)score()});
 bind($('pl'),()=>{playing?stopPlay():startPlay()});
+bind($('gif'),exportGif);bind($('gsave'),saveGif);bind($('gclose'),closeGif);
 bind($('nx'),start);
 
 /* ===== 画面に収める（スクロール不要） ===== */
