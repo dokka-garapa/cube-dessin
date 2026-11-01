@@ -23,23 +23,31 @@ button.ly.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:
 button.cs{min-height:32px}
 button.cs.on{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
 button.main{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+.tsr{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;padding:0 4px}
+.tbar{position:relative;flex:1;height:14px;margin:0 8px}
+.tbar::before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--bd)}
+.tbar i{position:absolute;top:1px;width:12px;height:12px;margin-left:-6px;border-radius:50%;box-sizing:border-box}
+.tbar .r{left:0;background:#e5383b}.tbar .b{left:100%;background:#38bdf8}
+.tbar .m{background:#16a34a;border:2px solid var(--card);box-shadow:0 0 0 1px #16a34a;width:12px;height:12px}
 #gv{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .gbox{background:var(--card);border-radius:12px;padding:12px;max-width:440px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
 .gbox img{width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:8px;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
 button.big{min-height:52px;font-size:18px;letter-spacing:.05em;border-radius:12px}
 .msg{font-size:12px;color:var(--mut);margin:0 2px;line-height:1.45}
-.cw{flex:1 1 0;min-height:0;display:flex;align-items:center;justify-content:center}
+.cw{flex:0 0 auto;display:flex;justify-content:center}
 .cv{position:relative}
 canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:none;display:block;border:1px solid var(--bd);box-sizing:border-box}
-.res{position:absolute;left:8px;right:8px;bottom:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 10px;display:none;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25);font-size:13px;line-height:1.4}
-.res b{font-size:26px}
+.res{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 10px;display:none;font-size:13px;line-height:1.4}
+.res b{font-size:22px}
 .res .msg{margin:2px 0 0}
 .tag{display:inline-block;background:var(--ac);color:#fff;border-radius:4px;padding:0 6px;font-size:12px;margin-right:6px;vertical-align:middle}
 </style></head><body><div class="wrap">
 <div class="top"><h1 data-i="title"></h1><button id="lang">English</button></div>
 <div class="btns"><button class="cs on" id="k0" data-i="c0"></button><button class="cs" id="k1" data-i="c1"></button><button class="cs" id="k2" data-i="c2"></button></div>
 <div class="msg" id="hint"></div>
-<div class="cw" id="cw"><div class="cv" id="cv"><canvas id="c"></canvas><div class="res" id="res"></div></div></div>
+<div class="tsr" id="tsume" hidden><span id="tst"></span><div class="tbar"><i class="r"></i><i class="b"></i><i class="m" id="tsm"></i></div></div>
+<div class="cw" id="cw"><div class="cv" id="cv"><canvas id="c"></canvas></div></div>
+<div class="res" id="res"></div>
 <div class="btns" id="lyr"><button class="ly on" id="l0" data-i="l0"></button><button class="ly" id="l1" data-i="l1"></button></div>
 <div class="btns" id="plr" hidden><button id="pl" class="main big"></button></div>
 <div class="btns"><button id="hb"></button><button id="undo" data-i="undo"></button><button id="clr" data-i="clr"></button></div>
@@ -47,7 +55,7 @@ canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:no
 </div>
 <div id="gv" hidden><div class="gbox"><img id="gimg" alt="GIF"><div class="msg" data-i="gmsg"></div><div class="btns"><button id="gsave" class="main" data-i="gsave"></button><button id="gclose" data-i="gclose"></button></div></div></div>
 <script>
-const W=400,H=440,CY=H/2,S=62,D=700;
+const W=440,H=320,CX=W/2,CY=H/2,S=62,D=700;
 /* 上級にもツメ指示を付ける場合 true／大きさの変化だけにする場合 false */
 const ADV_TSUME=true;
 const FONT='system-ui,"Hiragino Sans","Noto Sans JP",sans-serif';
@@ -99,17 +107,17 @@ let playing=false,pf=0,raf=0,t0=0,pid=null,ptype='';
 /* ===== 立方体 ===== */
 function rot(p,y,x,z){let[a,b,c]=p,t;t=a*Math.cos(y)+c*Math.sin(y);c=-a*Math.sin(y)+c*Math.cos(y);a=t;t=b*Math.cos(x)-c*Math.sin(x);c=b*Math.sin(x)+c*Math.cos(x);b=t;t=a*Math.cos(z)-b*Math.sin(z);b=a*Math.sin(z)+b*Math.cos(z);a=t;return[a,b,c]}
 function build(p){const SS=S*(p.s||1),V=[],P=[];
- for(let i=0;i<8;i++){const r=rot([i&1?SS:-SS,i&2?SS:-SS,i&4?SS:-SS],p.y,p.x,p.z),w=[r[0]+p.tx,r[1]+p.ty,r[2]+D];V.push(w);P.push([200+D*w[0]/w[2],CY+D*w[1]/w[2]])}
+ for(let i=0;i<8;i++){const r=rot([i&1?SS:-SS,i&2?SS:-SS,i&4?SS:-SS],p.y,p.x,p.z),w=[r[0]+p.tx,r[1]+p.ty,r[2]+D];V.push(w);P.push([CX+D*w[0]/w[2],CY+D*w[1]/w[2]])}
  const fr=[];for(let a=0;a<3;a++)for(let s=0;s<2;s++){const e=[0,0,0];e[a]=s?1:-1;const nn=rot(e,p.y,p.x,p.z),c=rot(e.map(v=>v*SS),p.y,p.x,p.z),w=[c[0]+p.tx,c[1]+p.ty,c[2]+D];fr[a*2+s]=nn[0]*w[0]+nn[1]*w[1]+nn[2]*w[2]<0}
  const E=[];for(let u=0;u<8;u++)for(let a=0;a<3;a++){if(u&(1<<a))continue;const v=u|(1<<a),o=[0,1,2].filter(k=>k!==a);E.push({a:P[u],b:P[v],vis:fr[o[0]*2+((u>>o[0])&1)]||fr[o[1]*2+((u>>o[1])&1)]})}
  return{P,E,vv:V.map((_,i)=>[0,1,2].some(k=>fr[k*2+((i>>k)&1)]))}}
-const ok=o=>o.P.every(p=>p[0]>30&&p[0]<370&&p[1]>58&&p[1]<H-45);
+const ok=o=>o.P.every(p=>p[0]>30&&p[0]<W-30&&p[1]>30&&p[1]<H-30);
 
 /* 初級：真ん中／中級：ツメ指示あり／上級：大きさが変わる（＋ツメ指示） */
 function gen(){const tsu=course===1||(course===2&&ADV_TSUME),adv=course===2;let r;for(let t=0;t<300;t++){
  const y0=R(-1,1),dy=R(.5,1.1)*sg(),x0=R(.25,.6)*sg(),dx=R(-.25,.25),z0=R(-.2,.2),dz=R(-.15,.15),tx=R(20,45)*sg(),ty=R(-15,15);
  const tt=tsu?(Math.random()<.5?1/3:2/3):.5;
- let sA=1,sB=1;if(adv){const sm=R(.72,.88),bg=R(1.12,1.3);if(Math.random()<.5){sA=sm;sB=bg}else{sA=bg;sB=sm}}
+ let sA=1,sB=1;if(adv){const sm=R(.72,.88),bg=R(1.12,1.25);if(Math.random()<.5){sA=sm;sB=bg}else{sA=bg;sB=sm}}
  const A=build({y:y0,x:x0,z:z0,tx:-tx,ty:-ty,s:sA}),B=build({y:y0+dy,x:x0+dx,z:z0+dz,tx,ty,s:sB}),
  M=build({y:y0+dy*tt,x:x0+dx*tt,z:z0+dz*tt,tx:-tx+2*tx*tt,ty:-ty+2*ty*tt,s:sA+(sB-sA)*tt});
  r={A,B,M,t:tt,tsu};if(ok(A)&&ok(B)&&ok(M))break}
@@ -123,14 +131,9 @@ function mark(o,i,kind,col){const c=o.P.reduce((s,p)=>[s[0]+p[0]/8,s[1]+p[1]/8],
  ctx.beginPath();if(kind===0){for(let j=0;j<10;j++){const a=-Math.PI/2+j*Math.PI/5,r=j%2?4:9;ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}}else{for(let j=0;j<3;j++){const a=-Math.PI/2+j*2*Math.PI/3;ctx.lineTo(x+Math.cos(a)*9,y+Math.sin(a)*9)}}
  ctx.closePath();ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke()}
 function userLines(L,col,w){L.forEach(s=>{ctx.beginPath();s.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash([]);ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke()})}
-function tsumeChart(){const t=q.t,x0=70,x1=330,y=34;ctx.setLineDash([]);ctx.font='12px '+FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#444';ctx.fillText(T(t<.5?'tsR':'tsB'),200,13);
- ctx.strokeStyle='#bbb';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
- ctx.fillStyle='#e5383b';ctx.beginPath();ctx.arc(x0,y,6,0,7);ctx.fill();ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(x1,y,6,0,7);ctx.fill();
- ctx.fillStyle='#16a34a';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x0+(x1-x0)*t,y,5,0,7);ctx.stroke();ctx.fill()}
 function draw(){if(playing){drawPlay();return}
  ctx.clearRect(0,0,W,H);ctx.strokeStyle='#eee';ctx.lineWidth=1;ctx.setLineDash([]);for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
  const{A,B,M,k}=q;
- if(q.tsu)tsumeChart();
  if(hint){M.E.forEach(e=>{if(!e.vis)seg(e.a,e.b,'#9ca3af',1.5,[4,5])});M.P.forEach((p,i)=>{ctx.beginPath();ctx.arc(p[0],p[1],5,0,7);ctx.fillStyle=M.vv[i]?'#16a34a':'#fff';ctx.fill();ctx.strokeStyle='#16a34a';ctx.lineWidth=2;ctx.stroke()})}
  cube(A,'#e5383b',2.5,hint,'#f5a3a6');cube(B,'#38bdf8',2.5,hint,'#a5dcf6');
  if(result){cube(M,'#16a34a',2.5,true,'#86c99a');mark(M,k[0],0,'#16a34a');mark(M,k[1],1,'#16a34a')}
@@ -239,15 +242,16 @@ function renderRes(){const r=$('res');if(!rs){r.style.display='none';return}r.st
 
 /* ===== 画面の状態 ===== */
 function syncBtns(){$('go').hidden=result;$('gif').hidden=!result;$('lyr').hidden=result;$('plr').hidden=!result;$('pl').textContent=T(playing?'stop':'play')}
+function tsumeUI(){const e=$('tsume'),on=!!(q&&q.tsu);e.hidden=!on;if(on){$('tst').textContent=T(q.t<.5?'tsR':'tsB');$('tsm').style.left=(q.t*100)+'%'}}
 function hintMsg(){$('hint').textContent=T(['h0','h1',ADV_TSUME?'h2':'h2n'][course])}
 function hbLabel(){$('hb').textContent=T(hint?'hbOff':'hb')}
 function apply(){document.documentElement.lang=lang;document.title=T('title');
  document.querySelectorAll('[data-i]').forEach(el=>el.textContent=T(el.dataset.i));
- $('lang').textContent=T('langBtn');hbLabel();syncBtns();hintMsg();renderRes();if(q)draw()}
+ $('lang').textContent=T('langBtn');hbLabel();syncBtns();hintMsg();tsumeUI();renderRes();if(q)draw()}
 function setLang(l){lang=l;try{localStorage.setItem('dw-lang',l)}catch(_){}apply()}
 function setLayer(l){layer=l;$('l0').classList.toggle('on',!l);$('l1').classList.toggle('on',!!l)}
 function start(){stopPlay();q=gen();strokes=[];drafts=[];setLayer(0);result=false;drawing=false;pid=null;hint=false;rs=null;
- $('hb').classList.remove('on');hbLabel();syncBtns();$('res').style.display='none';hintMsg();draw()}
+ $('hb').classList.remove('on');hbLabel();syncBtns();$('res').style.display='none';hintMsg();tsumeUI();draw()}
 function setCourse(c){if(c===course)return;course=c;n=0;[0,1,2].forEach(i=>$('k'+i).classList.toggle('on',i===c));start()}
 
 bind($('lang'),()=>setLang(lang==='ja'?'en':'ja'));
@@ -262,8 +266,13 @@ bind($('gif'),exportGif);bind($('gsave'),saveGif);bind($('gclose'),closeGif);
 bind($('nx'),start);
 
 /* ===== 画面に収める（スクロール不要） ===== */
-function fit(){const cw=$('cw'),bw=cw.clientWidth,bh=cw.clientHeight;if(!bw||!bh)return;const k=Math.min(bw/W,bh/H),v=$('cv');v.style.width=Math.floor(W*k)+'px';v.style.height=Math.floor(H*k)+'px'}
-if(window.ResizeObserver)new ResizeObserver(fit).observe($('cw'));
+/* 描画スペースは上に詰めて配置：他の行の高さを引いた残りに収まる大きさにする */
+function fit(){const w=document.querySelector('.wrap'),cs=getComputedStyle(w),pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom),gap=parseFloat(cs.rowGap)||6,
+ bw=w.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);let used=0,cnt=0;
+ for(const el of w.children){if(el.id==='cw'||!el.offsetHeight)continue;used+=el.offsetHeight;cnt++}
+ const avail=w.clientHeight-pad-used-gap*cnt,k=Math.min(bw/W,avail/H);if(!(k>0))return;
+ const v=$('cv');v.style.width=Math.floor(W*k)+'px';v.style.height=Math.floor(H*k)+'px'}
+if(window.ResizeObserver){const ro=new ResizeObserver(fit);for(const el of document.querySelector('.wrap').children)if(el.id!=='cw')ro.observe(el)}
 window.addEventListener('resize',fit);window.addEventListener('orientationchange',fit);
 
 apply();start();fit();
