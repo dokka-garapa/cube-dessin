@@ -13,8 +13,9 @@ body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:
 .wrap{max-width:460px;margin:0 auto;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
 .top{display:flex;align-items:center;gap:8px}
 h1{flex:1;font-size:14px;margin:0;text-align:center;line-height:1.35}
-#lang{flex:none;max-width:42%;min-height:32px;padding:4px 6px;font-size:12px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;font-family:inherit;touch-action:manipulation}
-#lang:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+#langs{gap:4px}
+button.lg{min-width:0;min-height:30px;padding:4px 2px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.lg.on{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
 .btns{display:flex;gap:6px}
 button{flex:1;min-height:36px;padding:6px 4px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;font-size:13px;touch-action:manipulation;font-family:inherit}
 button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
@@ -43,7 +44,8 @@ canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:no
 .res .msg{margin:2px 0 0}
 .tag{display:inline-block;background:var(--ac);color:#fff;border-radius:4px;padding:0 6px;font-size:12px;margin-inline-end:6px;vertical-align:middle}
 </style></head><body><div class="wrap">
-<div class="top"><h1 data-i="title"></h1><select id="lang" aria-label="Language"></select></div>
+<div class="top"><h1 data-i="title"></h1></div>
+<div class="btns" id="langs" role="group" aria-label="Language"></div>
 <div class="btns"><button class="cs on" id="k0" data-i="c0"></button><button class="cs" id="k1" data-i="c1"></button><button class="cs" id="k2" data-i="c2"></button></div>
 <div class="msg" id="hint"></div>
 <div class="tsr" id="tsume" hidden><span id="tst"></span><div class="tbar"><i class="r"></i><i class="b"></i><i class="m" id="tsm"></i></div></div>
@@ -297,7 +299,7 @@ function endStroke(){if(!drawing)return;drawing=false;pid=null;ptype='';const L=
 ['pointerup','pointercancel'].forEach(t=>window.addEventListener(t,e=>{if(drawing&&e.pointerId===pid)endStroke()}));
 
 /* ===== 描画スペース以外は何も反応させない（スクロール・拡大・選択・長押しメニューなど） ===== */
-const onGif=e=>e.target.closest&&e.target.closest('#gimg,#lang');
+const onGif=e=>e.target.closest&&e.target.closest('#gimg');
 document.addEventListener('touchstart',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
 document.addEventListener('touchmove',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
 ['gesturestart','gesturechange','gestureend','contextmenu','dragstart','selectstart'].forEach(t=>document.addEventListener(t,e=>{if(!onGif(e))e.preventDefault()}));
@@ -337,15 +339,14 @@ function apply(){document.documentElement.lang=lang;document.title=T('title');
  document.documentElement.dir='ltr';
  const rtl=I[lang].rtl?'rtl':'ltr';document.querySelectorAll('h1,.msg,#res,#tst').forEach(el=>el.dir=rtl);
  document.querySelectorAll('[data-i]').forEach(el=>el.textContent=T(el.dataset.i));
- $('lang').value=lang;hbLabel();syncBtns();hintMsg();tsumeUI();renderRes();if(q)draw()}
+ document.querySelectorAll('#langs button').forEach(b=>{const on=b.dataset.l===lang;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});hbLabel();syncBtns();hintMsg();tsumeUI();renderRes();if(q)draw()}
 function setLang(l){lang=l;try{localStorage.setItem('dw-lang',l)}catch(_){}apply()}
 function setLayer(l){layer=l;$('l0').classList.toggle('on',!l);$('l1').classList.toggle('on',!!l)}
 function start(){stopPlay();q=gen();strokes=[];drafts=[];setLayer(0);result=false;drawing=false;pid=null;hint=false;rs=null;
  $('hb').classList.remove('on');hbLabel();syncBtns();$('res').style.display='none';hintMsg();tsumeUI();draw()}
 function setCourse(c){if(c===course)return;course=c;n=0;[0,1,2].forEach(i=>$('k'+i).classList.toggle('on',i===c));start()}
 
-Object.keys(I).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=I[k].name;$('lang').appendChild(o)});
-$('lang').addEventListener('change',e=>setLang(e.target.value));
+Object.keys(I).forEach(k=>{const b=document.createElement('button');b.className='lg';b.dataset.l=k;b.textContent=I[k].name;b.lang=k;$('langs').appendChild(b);bind(b,()=>setLang(k))});
 [0,1,2].forEach(i=>bind($('k'+i),()=>setCourse(i)));
 bind($('l0'),()=>setLayer(0));bind($('l1'),()=>setLayer(1));
 bind($('hb'),()=>{hint=!hint;$('hb').classList.toggle('on',hint);hbLabel();draw()});
