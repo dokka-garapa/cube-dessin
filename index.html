@@ -3,21 +3,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>立方体の「デッサン割り」ゲーム・アニメーター動画マン体験</title>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ea;--fg:#222;--card:#fff;--mut:#666;--ac:#2b6cb0;--bd:#d8d3c7}
-html{height:100%;height:var(--vh,100dvh);overflow:hidden;overscroll-behavior:none;scroll-padding-top:env(safe-area-inset-top,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444}}
-:root[data-theme="dark"]{--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ea;--fg:#222;--card:#fff;--mut:#666;--ac:#2b6cb0;--bd:#d8d3c7;--note:#d9480f}
+html{overflow-x:hidden;overscroll-behavior:none;scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444;--note:#ffa94d}}
+:root[data-theme="dark"]{--bg:#1b1b1d;--fg:#eee;--card:#2a2a2e;--mut:#aaa;--ac:#7ab7ff;--bd:#444;--note:#ffa94d}
 *{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 [hidden]{display:none!important}
-body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;background:var(--bg);color:var(--fg);font-family:system-ui,"Hiragino Sans","Noto Sans JP","Apple SD Gothic Neo","Noto Sans KR","PingFang SC","Noto Sans SC","Noto Sans Arabic","Thonburi","Noto Sans Thai",sans-serif}
-.wrap{max-width:460px;margin:0 auto;padding:8px 12px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
+body{margin:0;overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y;background:var(--bg);color:var(--fg);font-family:system-ui,"Hiragino Sans","Noto Sans JP","Apple SD Gothic Neo","Noto Sans KR","PingFang SC","Noto Sans SC","Noto Sans Arabic","Thonburi","Noto Sans Thai",sans-serif}
+.wrap{max-width:460px;margin:0 auto;padding:8px 12px;height:100dvh;height:var(--vh,100dvh);box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
 .top{display:flex;align-items:center;gap:8px}
 h1{flex:1;font-size:14px;margin:0;text-align:center;line-height:1.35}
 #langs{gap:4px}
-button.lg{min-width:0;min-height:30px;padding:4px 2px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-button.lg .sn{display:none;font-size:13px;font-weight:700}
-@media (max-width:520px){button.lg .ln{display:none}button.lg .sn{display:inline}}
-button.lg.on{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:700}
+button.lg{min-width:0;min-height:32px;padding:4px 2px;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:999px}
+button.lg .ln{display:none}
+button.lg .sn{display:inline;font-size:13px;font-weight:700}
+button.lg.on{background:#f79c1d;color:#fff;border-color:#e07f00;font-weight:700}
 .btns{display:flex;gap:6px}
 button{flex:1;min-height:36px;padding:6px 4px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;font-size:13px;touch-action:manipulation;font-family:inherit}
 button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
@@ -50,10 +50,14 @@ canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:no
 .res{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 10px;display:none;font-size:13px;line-height:1.4}
 .res b{font-size:22px}
 .res .msg{margin:2px 0 0}
+#bnote{font-size:13px;font-weight:700;color:var(--note);line-height:1.35;margin:0 2px;text-align:center}
+#credit{margin-top:160px;padding-bottom:64px;text-align:center;font-size:12px;color:var(--mut);line-height:1.8}
+#credit a{color:var(--ac);font-weight:700;text-decoration:none}
 .tag{display:inline-block;background:var(--ac);color:#fff;border-radius:4px;padding:0 6px;font-size:12px;margin-inline-end:6px;vertical-align:middle}
 </style></head><body><div class="wrap">
 <div class="top"><h1 data-i="title"></h1></div>
 <div class="btns" id="langs" role="group" aria-label="Language"></div>
+<div id="bnote" data-i="bnote"></div>
 <div class="btns"><button class="cs on" id="k0" data-i="c0"></button><button class="cs" id="k1" data-i="c1"></button><button class="cs" id="k2" data-i="c2"></button></div>
 <div class="msg" id="hint"></div>
 <div class="tsr" id="tsume" hidden><span id="tst"></span><div class="tbar"><i class="r"></i><i class="b"></i><i class="m" id="tsm"></i></div></div>
@@ -65,6 +69,7 @@ canvas{width:100%;height:100%;background:#fff;border-radius:10px;touch-action:no
 <div class="btns"><button id="hb"></button><button id="undo" data-i="undo"></button><button id="clr" data-i="clr"></button></div>
 <div class="btns"><button id="go" class="main" data-i="go"></button><button id="gif" data-i="gif" hidden></button><button id="nx" data-i="nx"></button></div>
 </div>
+<footer id="credit"><div>© 2026 <span id="crn">ふっふ (Fuffu)</span></div><div><span id="crl">お問い合わせ: </span><a href="https://x.com/dokka_garapa" target="_blank" rel="noopener">X @dokka_garapa</a></div></footer>
 <div id="gv" hidden><div class="gbox"><img id="gimg" alt="GIF"><div class="msg" data-i="gmsg"></div><div class="btns"><button id="gsave" class="main" data-i="gsave"></button><button id="gclose" data-i="gclose"></button></div></div></div>
 <script>
 const W=440,H=320,CX=W/2,CY=H/2,S=62,D=700;
@@ -75,7 +80,7 @@ const FONT='system-ui,"Hiragino Sans","Noto Sans JP","Apple SD Gothic Neo","Noto
 /* ===== 言語 ===== */
 const I={
 ja:{
- title:`立方体の「デッサン割り」ゲーム・アニメーター動画マン体験`,name:`日本語`,short:`日`,gpt:`点`,
+ title:`立方体の「デッサン割り」ゲーム・アニメーター動画マン体験`,bnote:`ブラウザで開くとGIFアニメ保存できます`,cname:`ふっふ (Fuffu)`,contact:`お問い合わせ: `,name:`日本語`,short:`日`,gpt:`点`,
  c0:`初級`,c1:`中級`,c2:`上級`,
  l0:`①下書き（薄い灰色）`,l1:`②清書（黒・採点対象）`,
  hm:`描いた線を非表示`,hmOn:`描いた線を表示`,ta:`タップを外して答えの位置で合わせる`,taOff:`元の位置に戻す`,hb:`ヒント`,hbOff:`ヒントを消す`,undo:`1本戻す`,clr:`この段階を消す`,go:`採点する`,nx:`次の出題`,play:`▶ 再生`,stop:`■ 停止`,gif:`GIF保存`,gifBusy:`書き出し中…`,gtitle:`立方体「デッサン割り」ゲーム`,gsave:`保存／共有`,gclose:`閉じる`,gmsg:`「保存／共有」を押すか、保存が始まらないときは画像を長押し（PCは右クリック）して保存してください。`,
@@ -91,7 +96,7 @@ ja:{
  note:`緑が正解の立方体です（{q}）。「▶ 再生」で動きを確認、「GIF保存」で書き出し、「次の出題」で続けます。`
 },
 en:{
- title:`Cube "Dessin-wari" Game – Try Being an Animation Inbetweener`,name:`English`,short:`EN`,gpt:` pts`,
+ title:`Cube "Dessin-wari" Game – Try Being an Animation Inbetweener`,bnote:`Open in a browser to save the GIF animation`,cname:`Fuffu`,contact:`Contact: `,name:`English`,short:`EN`,gpt:` pts`,
  c0:`Beginner`,c1:`Intermediate`,c2:`Advanced`,
  l0:`① Rough (light gray)`,l1:`② Clean-up (black, scored)`,
  hm:`Hide my lines`,hmOn:`Show my lines`,ta:`Unpeg and align at the answer position`,taOff:`Back to original positions`,hb:`Hint`,hbOff:`Hide hint`,undo:`Undo stroke`,clr:`Clear this layer`,go:`Score`,nx:`Next`,play:`▶ Play`,stop:`■ Stop`,gif:`Save GIF`,gifBusy:`Exporting…`,gtitle:`Cube "Dessin-wari" Game`,gsave:`Save / Share`,gclose:`Close`,gmsg:`Press "Save / Share". If nothing downloads, press and hold the image (or right-click on a computer) to save it.`,
@@ -108,7 +113,7 @@ en:{
 },
 ko:{
  name:`한국어`,short:`한`,gpt:`점`,
- title:`입방체 「데생 나누기」 게임 · 동화맨(인비트위너) 체험`,
+ title:`입방체 「데생 나누기」 게임 · 동화맨(인비트위너) 체험`,bnote:`브라우저에서 열면 GIF 애니메이션을 저장할 수 있습니다`,cname:`Fuffu`,contact:`문의: `,
  c0:`초급`,c1:`중급`,c2:`상급`,
  l0:`① 밑그림 (연한 회색)`,l1:`② 선화 정리 (검정·채점 대상)`,
  hm:`그린 선 숨기기`,hmOn:`그린 선 보이기`,ta:`탭을 빼고 정답 위치에 맞춰 보기`,taOff:`원래 위치로 되돌리기`,hb:`힌트`,hbOff:`힌트 끄기`,undo:`한 획 취소`,clr:`이 단계 지우기`,go:`채점하기`,nx:`다음 문제`,play:`▶ 재생`,stop:`■ 정지`,gif:`GIF 저장`,gifBusy:`내보내는 중…`,gtitle:`입방체 「데생 나누기」 게임`,gsave:`저장／공유`,gclose:`닫기`,gmsg:`「저장／공유」를 눌러 주세요. 저장이 시작되지 않으면 이미지를 길게 눌러(PC는 우클릭) 저장하세요.`,
@@ -125,7 +130,7 @@ ko:{
 },
 zh:{
  name:`中文`,short:`中`,gpt:`分`,
- title:`立方体“素描中割”游戏·体验补间动画师`,
+ title:`立方体“素描中割”游戏·体验补间动画师`,bnote:`在浏览器中打开即可保存GIF动画`,cname:`Fuffu`,contact:`联系方式：`,
  c0:`初级`,c1:`中级`,c2:`高级`,
  l0:`① 草稿（浅灰）`,l1:`② 清稿（黑色·计分）`,
  hm:`隐藏我画的线`,hmOn:`显示我画的线`,ta:`取下定位尺，对齐到答案位置`,taOff:`恢复原来的位置`,hb:`提示`,hbOff:`隐藏提示`,undo:`撤销一笔`,clr:`清除此阶段`,go:`评分`,nx:`下一题`,play:`▶ 播放`,stop:`■ 停止`,gif:`保存GIF`,gifBusy:`导出中…`,gtitle:`立方体“素描中割”游戏`,gsave:`保存／分享`,gclose:`关闭`,gmsg:`请点击“保存／分享”。若没有开始保存，请长按图片（电脑上右键）进行保存。`,
@@ -142,7 +147,7 @@ zh:{
 },
 fr:{
  name:`Français`,short:`FR`,gpt:` pts`,
- title:`Cube « Dessin-wari » – Essayez le métier d’intervalliste`,
+ title:`Cube « Dessin-wari » – Essayez le métier d’intervalliste`,bnote:`Ouvrez dans un navigateur pour enregistrer l’animation GIF`,cname:`Fuffu`,contact:`Contact : `,
  c0:`Débutant`,c1:`Intermédiaire`,c2:`Avancé`,
  l0:`① Esquisse (gris clair)`,l1:`② Mise au propre (noir, notée)`,
  hm:`Masquer mes traits`,hmOn:`Afficher mes traits`,ta:`Retirer des pitons et aligner sur la réponse`,taOff:`Remettre en place`,hb:`Indice`,hbOff:`Masquer l’indice`,undo:`Annuler un trait`,clr:`Effacer cette étape`,go:`Noter`,nx:`Suivant`,play:`▶ Lecture`,stop:`■ Arrêt`,gif:`Enregistrer le GIF`,gifBusy:`Export…`,gtitle:`Cube « Dessin-wari »`,gsave:`Enregistrer / Partager`,gclose:`Fermer`,gmsg:`Appuyez sur « Enregistrer / Partager ». Si rien ne se télécharge, maintenez le doigt sur l’image (ou clic droit sur ordinateur) pour l’enregistrer.`,
@@ -159,7 +164,7 @@ fr:{
 },
 es:{
  name:`Español`,short:`ES`,gpt:` pts`,
- title:`Cubo «Dessin-wari» – Prueba a ser intercalador de animación`,
+ title:`Cubo «Dessin-wari» – Prueba a ser intercalador de animación`,bnote:`Ábrelo en un navegador para guardar la animación GIF`,cname:`Fuffu`,contact:`Contacto: `,
  c0:`Principiante`,c1:`Intermedio`,c2:`Avanzado`,
  l0:`① Boceto (gris claro)`,l1:`② Entintado (negro, puntuado)`,
  hm:`Ocultar mis líneas`,hmOn:`Mostrar mis líneas`,ta:`Quitar de las clavijas y alinear con la respuesta`,taOff:`Volver a la posición original`,hb:`Pista`,hbOff:`Ocultar pista`,undo:`Deshacer trazo`,clr:`Borrar esta fase`,go:`Puntuar`,nx:`Siguiente`,play:`▶ Reproducir`,stop:`■ Detener`,gif:`Guardar GIF`,gifBusy:`Exportando…`,gtitle:`Cubo «Dessin-wari»`,gsave:`Guardar / Compartir`,gclose:`Cerrar`,gmsg:`Pulsa «Guardar / Compartir». Si no se descarga nada, mantén pulsada la imagen (o clic derecho en el ordenador) para guardarla.`,
@@ -176,7 +181,7 @@ es:{
 },
 ar:{
  name:`العربية`,short:`ع`,gpt:` نقطة`,rtl:1,
- title:`لعبة المكعب «Dessin-wari» – جرّب أن تكون رسّام الإطارات الوسيطة`,
+ title:`لعبة المكعب «Dessin-wari» – جرّب أن تكون رسّام الإطارات الوسيطة`,bnote:`افتحه في المتصفح لحفظ رسوم GIF المتحركة`,cname:`Fuffu`,contact:`للتواصل: `,
  c0:`مبتدئ`,c1:`متوسط`,c2:`متقدم`,
  l0:`① المسودة (رمادي فاتح)`,l1:`② تنظيف الخطوط (أسود، يُحتسب)`,
  hm:`إخفاء خطوطي`,hmOn:`إظهار خطوطي`,ta:`إزالة من أوتاد التثبيت والمحاذاة مع الإجابة`,taOff:`العودة إلى الموضع الأصلي`,hb:`تلميح`,hbOff:`إخفاء التلميح`,undo:`تراجع عن خط`,clr:`مسح هذه المرحلة`,go:`تقييم`,nx:`التالي`,play:`▶ تشغيل`,stop:`■ إيقاف`,gif:`حفظ GIF`,gifBusy:`جارٍ التصدير…`,gtitle:`لعبة المكعب «Dessin-wari»`,gsave:`حفظ / مشاركة`,gclose:`إغلاق`,gmsg:`اضغط «حفظ / مشاركة». إذا لم يبدأ الحفظ، فاضغط مطولاً على الصورة (أو انقر بزر الفأرة الأيمن على الكمبيوتر) لحفظها.`,
@@ -193,7 +198,7 @@ ar:{
 },
 th:{
  name:`ภาษาไทย`,short:`ไทย`,gpt:` คะแนน`,
- title:`เกมลูกบาศก์ "Dessin-wari" – ลองเป็นนักวาดภาพแทรก`,
+ title:`เกมลูกบาศก์ "Dessin-wari" – ลองเป็นนักวาดภาพแทรก`,bnote:`เปิดในเบราว์เซอร์เพื่อบันทึกภาพเคลื่อนไหว GIF ได้`,cname:`Fuffu`,contact:`ติดต่อ: `,
  c0:`ง่าย`,c1:`ปานกลาง`,c2:`ยาก`,
  l0:`① ร่างภาพ (เทาอ่อน)`,l1:`② ลงเส้นสะอาด (ดำ·ให้คะแนน)`,
  ta:`ถอดจากแกนยึดแล้ววางตรงตำแหน่งคำตอบ`,taOff:`กลับไปตำแหน่งเดิม`,
@@ -339,9 +344,11 @@ function endStroke(){if(!drawing)return;drawing=false;pid=null;ptype='';const L=
 
 /* ===== 描画スペース以外は何も反応させない（スクロール・拡大・選択・長押しメニューなど） ===== */
 const onGif=e=>e.target.closest&&e.target.closest('#gimg,#c');
-document.addEventListener('touchstart',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
-document.addEventListener('touchmove',e=>{if(!onGif(e))e.preventDefault()},{passive:false});
-['gesturestart','gesturechange','gestureend','contextmenu','dragstart','selectstart'].forEach(t=>document.addEventListener(t,e=>{if(!onGif(e))e.preventDefault()}));
+const onCredit=e=>e.target.closest&&e.target.closest('#credit');
+const onBlock=e=>{const tg=e.target;return tg&&(tg.tagName==='CANVAS'||tg.tagName==='BUTTON')};
+document.addEventListener('touchstart',e=>{if(onGif(e)||onCredit(e))return;if(onBlock(e))e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(onGif(e))return;if(onBlock(e))e.preventDefault()},{passive:false});
+['gesturestart','gesturechange','gestureend','contextmenu','dragstart','selectstart'].forEach(t=>document.addEventListener(t,e=>{if(!onGif(e)&&!onCredit(e))e.preventDefault()}));
 
 /* ===== ボタン：指でもペン先でもマウスでも反応（離した位置がボタン付近なら実行） ===== */
 function bind(el,fn){let id=null;
@@ -378,8 +385,9 @@ function hmLabel(){$('hm').textContent=T(hideMine?'hmOn':'hm');$('hm').classList
 function hbLabel(){$('hb').textContent=T(hint?'hbOff':'hb')}
 function apply(){document.documentElement.lang=lang;document.title=T('title');
  document.documentElement.dir='ltr';
- const rtl=I[lang].rtl?'rtl':'ltr';document.querySelectorAll('h1,.msg,#res,#tst').forEach(el=>el.dir=rtl);
+ const rtl=I[lang].rtl?'rtl':'ltr';document.querySelectorAll('h1,.msg,#res,#tst,#bnote,#credit').forEach(el=>el.dir=rtl);
  document.querySelectorAll('[data-i]').forEach(el=>el.textContent=T(el.dataset.i));
+ $('crn').textContent=T('cname');$('crl').textContent=T('contact');
  document.querySelectorAll('#langs button').forEach(b=>{const on=b.dataset.l===lang;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});hbLabel();alLabel();hmLabel();syncBtns();hintMsg();tsumeUI();renderRes();if(q)draw()}
 function setLang(l){lang=l;try{localStorage.setItem('dw-lang',l)}catch(_){}apply()}
 function setLayer(l){layer=l;$('l0').classList.toggle('on',!l);$('l1').classList.toggle('on',!!l)}
